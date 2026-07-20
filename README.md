@@ -1,110 +1,109 @@
 # ur-storybook
 
-上傳一張角色圖片，或輸入一段簡短描述，就自動生成一本圖文並茂的**故事書（storybook）**——
-自動產出**故事大綱 → 場景 → 插圖**，並維持全書畫風與角色一致。
+這是一個讓學生上傳手繪圖或輸入故事點子，直接生成故事書並下載 PDF 的工具。
 
-> 🚧 專案初始化階段。技術選型與程式碼待開發，架構藍圖見 [`CLAUDE.md`](CLAUDE.md)。
+目前的使用方式是：
+- 前端放在 GitHub Pages
+- 後端跑在你的 Ubuntu 主機
+- 學生用瀏覽器打開網址，第一次輸入課堂密碼後即可使用
 
-## 生成管線
+## 學生使用連結
 
-1. **輸入解析** — 上傳圖片（角色）或簡短描述 → 角色設定 + 故事種子
-2. **大綱生成** — 產生分頁故事結構
-3. **場景擴寫** — 每頁文字 + 圖像描述
-4. **插圖生成** — 逐頁生圖，鎖定角色/畫風一致性
-5. **組 book / 匯出** — 翻頁預覽（選配 PDF 匯出）
+故事書頁：
 
-## 開發須知
+```text
+https://jong-liu.github.io/ur-storybook/?api=https://6d1e90e4d59ed8.lhr.life
+```
 
-- **API Key 只放後端 `.env`**，永不進前端或 repo。
-- **`node_modules` 不要放 Google Drive**：`npm install` 在 GDrive 內會失敗；
-  原始碼放 GDrive，`install / build / run` 一律在本機磁碟（如 `C:\dev\ur-storybook`，從 GitHub clone）。
+角色頁：
 
-## Node 版本
+```text
+https://jong-liu.github.io/ur-storybook/character.html?api=https://6d1e90e4d59ed8.lhr.life
+```
 
-- 建議使用 Node `20.x`（本專案已提供 `.nvmrc`）。
-- 若你使用 `nvm`：
+課堂密碼：
+
+```text
+tw2026
+```
+
+說明：
+- 學生第一次打開頁面時，會先跳出密碼輸入框。
+- 密碼輸入一次後，瀏覽器會暫存，下次通常不用再輸入。
+- 這個 `api` 網址目前是臨時 tunnel，只要你的後端或 tunnel 停掉，連結就會失效。
+
+## 老師開課前要做什麼
+
+1. 先進入專案資料夾。
+2. 切到 Node 20。
+3. 啟動後端。
+4. 啟動 HTTPS tunnel。
+5. 把學生連結貼給全班。
+
+常用指令：
+
+```bash
+nvm use
+node server/server.mjs
+ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 nokey@localhost.run
+```
+
+## 本機設定
+
+專案使用 Node 20。
 
 ```bash
 nvm use
 ```
 
-## 一桌三櫃
-
-- 🪑 GDrive：`G:\我的雲端硬碟\claude\projects\ur-storybook\`
-- 🐙 GitHub：`jong-liu/ur-storybook`
-- 📘 Obsidian：`2ndbrain/ur-storybook/工作筆記.md`
-
-## 本機後端 + GitHub 前端（建議部署法）
-
-1. 在專案根目錄建立 `.env`（可複製 `.env.example`）並填好：
-   - `OPENAI_API_KEY`
-   - `CORS_ALLOW_ORIGINS`（預設已含 `https://jong-liu.github.io`）
-2. 啟動本機後端：
-
-```bash
-node server/server.mjs
-```
-
-3. 打開 GitHub Pages 前端，並加上 `api` 參數指向本機後端：
+後端設定放在 `.env`，至少需要：
 
 ```text
-https://jong-liu.github.io/ur-storybook/?api=http://localhost:3000
+OPENAI_API_KEY=你的金鑰
+APP_PASSWORD=tw2026
+CORS_ALLOW_ORIGINS=https://jong-liu.github.io
 ```
 
-4. 角色頁也可直接這樣開：
+如果你要參考完整格式，可看 `.env.example`。
 
-```text
-https://jong-liu.github.io/ur-storybook/character.html?api=http://localhost:3000
-```
+## 日常使用流程
 
-說明：
-- 前端會把 `api` 參數存到 `localStorage`，下次同網域開頁面會自動沿用。
-- 後端已支援 CORS 與 preflight（含 Private Network preflight），可被 GitHub Pages 直接呼叫。
+1. 開機後先確認 `nvm use` 已切到 Node 20。
+2. 跑 `node server/server.mjs`。
+3. 再開一個 terminal 跑 tunnel。
+4. tunnel 產生一個新的 `https://xxxxx.lhr.life` 網址。
+5. 把學生連結中的 `api=` 換成新的 tunnel 網址。
+6. 把連結發給學生。
 
-## 給學生直接使用（GitHub Pages + 雲端後端）
+## 常見問題
 
-前端 GitHub Pages 連結：
+### 為什麼不能直接用 `http://你的IP:3000`？
 
-```text
-https://jong-liu.github.io/ur-storybook/
-```
+因為 GitHub Pages 是 HTTPS，瀏覽器會擋掉連到 HTTP 後端的 mixed content。
 
-要讓學生可直接上傳手繪圖並生成故事書，你需要把 `server/server.mjs` 部署到雲端（例如 Render / Railway / Fly.io），拿到一個後端網址（假設為 `https://your-backend.example.com`）。
+### 為什麼每次學生連結都可能變？
 
-部署後，發給學生的連結可用這種格式：
+因為 `localhost.run` 是臨時 tunnel，每次重開可能拿到不同網址。
 
-```text
-https://jong-liu.github.io/ur-storybook/?api=https://your-backend.example.com
-```
+### 如果學生看到不能連線？
 
-角色頁連結：
+先檢查兩件事：
+- `node server/server.mjs` 還有沒有在跑
+- `ssh ... localhost.run` 那個 tunnel 還有沒有在跑
 
-```text
-https://jong-liu.github.io/ur-storybook/character.html?api=https://your-backend.example.com
-```
+### 如果想換課堂密碼？
 
-### 可選：課堂密碼保護
+改 `.env` 裡的 `APP_PASSWORD`，再重啟後端即可。
 
-若要防止外部濫用，後端設定環境變數：
+## 目前重要檔案
 
-```text
-APP_PASSWORD=你的課堂密碼
-```
+- `server/server.mjs`：後端 API 與 CORS / 密碼保護
+- `public/app.js`：故事書頁前端邏輯
+- `public/character.js`：角色頁前端邏輯
+- `public/pdf.js`：PDF 匯出
+- `.env.example`：環境變數範例
 
-前端遇到 401 會自動跳出密碼輸入框；輸入一次後會暫存於瀏覽器 `localStorage`。
+## 備註
 
-也可以把密碼直接放在連結（方便但較不安全）：
-
-```text
-https://jong-liu.github.io/ur-storybook/?api=https://your-backend.example.com&pwd=你的課堂密碼
-```
-
-### 雲端後端建議環境變數
-
-- `OPENAI_API_KEY`
-- `OPENAI_CHAT_MODEL=gpt-4o`
-- `OPENAI_IMAGE_MODEL=gpt-image-1`
-- `OPENAI_IMAGE_QUALITY=low`
-- `OPENAI_CHARACTER_QUALITY=high`
-- `CORS_ALLOW_ORIGINS=https://jong-liu.github.io`
-- `APP_PASSWORD`（可選）
+這份 README 只保留使用方式。
+較完整的開發背景與專案藍圖請看 `CLAUDE.md`。
