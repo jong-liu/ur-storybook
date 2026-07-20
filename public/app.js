@@ -1,6 +1,30 @@
 // ur-storybook 前端邏輯（純 vanilla JS，無打包）
 const $ = (id) => document.getElementById(id);
 
+const API_BASE = resolveApiBase();
+
+function resolveApiBase() {
+  const q = new URLSearchParams(location.search).get('api');
+  if (q) {
+    const v = normalizeApiBase(q);
+    try { localStorage.setItem('ur-storybook-api-base', v); } catch {}
+    return v;
+  }
+  try {
+    const saved = localStorage.getItem('ur-storybook-api-base');
+    if (saved) return normalizeApiBase(saved);
+  } catch {}
+  return '';
+}
+
+function normalizeApiBase(v) {
+  return String(v || '').trim().replace(/\/+$/, '');
+}
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
 const state = {
   charImageDataUrl: '',  // 上傳的角色圖 dataURL
   book: null,            // { title, character, style, cover:{image}, pages:[{text, illustration_prompt, image}] }
@@ -139,7 +163,7 @@ function setStatus(msg, show = true) {
 }
 
 async function api(path, body) {
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
   const data = await res.json();

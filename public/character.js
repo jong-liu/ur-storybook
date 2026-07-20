@@ -4,6 +4,30 @@ const FIELDS = ['cName', 'cFeatures', 'cMood', 'cPose', 'cClothing'];
 let currentImage = null;
 let currentName = '';
 
+const API_BASE = resolveApiBase();
+
+function resolveApiBase() {
+  const q = new URLSearchParams(location.search).get('api');
+  if (q) {
+    const v = normalizeApiBase(q);
+    try { localStorage.setItem('ur-storybook-api-base', v); } catch {}
+    return v;
+  }
+  try {
+    const saved = localStorage.getItem('ur-storybook-api-base');
+    if (saved) return normalizeApiBase(saved);
+  } catch {}
+  return '';
+}
+
+function normalizeApiBase(v) {
+  return String(v || '').trim().replace(/\/+$/, '');
+}
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
 // 風格標籤（跟後端 CHARACTER_STYLE_TAGS 一致；載入時也會用 /api/health 覆寫確保同步）
 const DEFAULT_TAGS = ['日系插畫風', '角色特徵鮮明', '情緒自然表情', '動態姿態', '服裝細節精緻',
   '手繪塗鴉風', '潑墨筆觸', '隨性線條', '粉彩與墨色混合', '漫畫草稿質感',
@@ -13,7 +37,7 @@ function renderChips(tags) {
   $('styleChips').innerHTML = tags.map((t) => `<span class="chip">${t}</span>`).join('');
 }
 renderChips(DEFAULT_TAGS);
-fetch('/api/health').then((r) => r.json()).then((d) => {
+fetch(apiUrl('/api/health')).then((r) => r.json()).then((d) => {
   if (Array.isArray(d.characterStyleTags) && d.characterStyleTags.length) renderChips(d.characterStyleTags);
 }).catch(() => {});
 
@@ -111,7 +135,7 @@ async function generate() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   try {
-    const res = await fetch('/api/character', {
+    const res = await fetch(apiUrl('/api/character'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c),
     });
     const data = await res.json();

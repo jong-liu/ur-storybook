@@ -3,8 +3,7 @@
 // 啟動：node server/server.mjs   （可直接在 GDrive 跑，不需 npm install）
 
 import http from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { promises as fsPromises, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateImage, editImage, moderate } from './lib/openai.mjs';
@@ -15,6 +14,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
 const PORT = Number(process.env.PORT) || 3000;
+const { readFile, stat } = fsPromises;
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://jong-liu.github.io',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
 
 // ── 極簡 .env 載入 ──────────────────────────────────────────
 async function loadEnv() {
@@ -34,6 +39,27 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
 };
+
+function getAllowedOrigins() {
+  const raw = process.env.CORS_ALLOW_ORIGINS || DEFAULT_ALLOWED_ORIGINS.join(',');
+  return new Set(raw.split(',').map((s) => s.trim()).filter(Boolean));
+}
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  if (!origin) return;
+  const allowed = getAllowedOrigins();
+  if (!allowed.has(origin)) return;
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.headers['access-control-request-private-network'] === 'true') {
+    // Allow browser preflight from HTTPS pages to localhost backend.
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+}
 
 function sendJSON(res, code, obj) {
   const b = Buffer.from(JSON.stringify(obj));
@@ -73,6 +99,13 @@ async function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
   try {
+    applyCors(req, res);
+
+    if (req.method === 'OPTIONS' && url.startsWith('/api/')) {
+      res.writeHead(204);
+      return res.end();
+    }
+
     // ── API：生成大綱 ─────────────────────────────────────
     if (req.method === 'POST' && url === '/api/outline') {
       const { idea = '', title = '', characterImage = '', numPages = 5, style } = await readBody(req);
@@ -132,9 +165,16 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-await loadEnv();
-server.listen(PORT, () => {
-  console.log(`\n📖 ur-storybook 後端啟動：http://localhost:${PORT}`);
-  console.log(`   金鑰狀態：${process.env.OPENAI_API_KEY ? '✅ 已載入' : '❌ 未設定（請在 .env 填 OPENAI_API_KEY）'}`);
-  console.log(`   靜態目錄：${PUBLIC}\n`);
+async function main() {
+  await loadEnv();
+  server.listen(PORT, () => {
+    console.log(`\n📖 ur-storybook 後端啟動：http://localhost:${PORT}`);
+    console.log(`   金鑰狀態：${process.env.OPENAI_API_KEY ? '✅ 已載入' : '❌ 未設定（請在 .env 填 OPENAI_API_KEY）'}`);
+    console.log(`   靜態目錄：${PUBLIC}\n`);
+  });
+}
+
+main().catch((e) => {
+  console.error('啟動失敗：', e.message);
+  process.exit(1);
 });
