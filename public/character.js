@@ -38,15 +38,39 @@ function liveSafetyCheck() {
 }
 FIELDS.forEach((id) => $(id).addEventListener('input', liveSafetyCheck));
 
-// ── 載入範例 ─────────────────────────────────────────────────
-$('loadExample').addEventListener('click', () => {
-  $('cName').value = '一個勇敢的小女孩，叫小星';
-  $('cFeatures').value = '紅色短髮、大大的琥珀色眼睛、臉頰有小雀斑';
-  $('cMood').value = '開心又充滿好奇';
-  $('cPose').value = '張開雙手往前奔跑';
-  $('cClothing').value = '黃色雨衣配紅色小雨鞋';
+// ── 範例角色下拉選單（童話與歷史故事主角，適合小三～小六）────
+const EXAMPLES = [
+  { name: '小紅帽', features: '黑色短髮，明亮的大眼睛，白皙皮膚', mood: '開心又充滿好奇', pose: '手提籃子，輕快走在森林小路上', clothing: '紅色斗篷，簡單洋裝' },
+  { name: '灰姑娘', features: '金色長髮，藍色眼睛，皮膚白皙', mood: '溫柔帶點期待', pose: '輕輕舉起裙擺，走向舞會大廳', clothing: '華麗藍色禮服，玻璃鞋' },
+  { name: '三隻小豬', features: '圓滾滾的身形，粉紅色皮膚，小耳朵', mood: '努力又專注，帶點緊張', pose: '一隻搬木材，一隻堆磚塊，一隻吹草堆', clothing: '簡單背心與短褲' },
+  { name: '白雪公主', features: '烏黑短髮，紅潤臉頰，白皙皮膚', mood: '純真微笑，帶點天真', pose: '雙手捧著蘋果，坐在小矮人小屋裡', clothing: '藍黃相間的公主裙' },
+  { name: '皮諾丘', label: '木偶奇遇記（皮諾丘）', features: '木頭身體，長鼻子，圓眼睛', mood: '調皮又有點緊張', pose: '伸手摸鼻子，走在小鎮街道', clothing: '紅色短褲，黃色帽子' },
+  { name: '孔子', features: '長鬍鬚，黑髮盤髻，莊重面容', mood: '慈祥又專注', pose: '手持竹簡，正在講課', clothing: '古代長袍，腰間束帶' },
+  { name: '小華盛頓', label: '華盛頓（童年）', features: '棕色短髮，白皙皮膚，年輕稚氣', mood: '誠實又有點緊張', pose: '手持小斧頭，站在櫻桃樹旁', clothing: '簡單襯衫與短褲' },
+  { name: '嫦娥', features: '烏黑長髮，白皙皮膚，優雅面容', mood: '溫柔帶點憂愁', pose: '雙手輕揚，飛向月亮', clothing: '飄逸的古代長裙，袖口寬大' },
+  { name: '馬丁路德金博士', features: '短黑髮，深色皮膚，堅毅面容', mood: '充滿希望與力量', pose: '站在講台上，雙手舉起演說', clothing: '深色西裝，白襯衫與領帶' },
+  { name: '鄭和', features: '黑髮束冠，莊重面容，膚色偏古銅', mood: '沉穩又自信', pose: '站在船甲板上，指向遠方海域', clothing: '明朝官服，寬袖長袍' },
+];
+
+const exampleSelect = $('exampleSelect');
+EXAMPLES.forEach((ex, i) => {
+  const opt = document.createElement('option');
+  opt.value = String(i);
+  opt.textContent = `${i + 1}. ${ex.label || ex.name}`;
+  exampleSelect.appendChild(opt);
+});
+
+exampleSelect.addEventListener('change', () => {
+  const idx = exampleSelect.value;
+  if (idx === '') return;
+  const ex = EXAMPLES[Number(idx)];
+  $('cName').value = ex.name;
+  $('cFeatures').value = ex.features;
+  $('cMood').value = ex.mood;
+  $('cPose').value = ex.pose;
+  $('cClothing').value = ex.clothing;
   liveSafetyCheck();
-  setStatus('已載入範例，可以直接生成，或改成自己的角色 😊');
+  setStatus(`已載入範例角色「${ex.label || ex.name}」，可以直接生成，或改成自己的角色 😊`);
 });
 
 // ── 生成 ─────────────────────────────────────────────────────
