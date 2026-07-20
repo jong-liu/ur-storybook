@@ -1,0 +1,28 @@
+# 雲端硬碟系統檔
+desktop.ini
+*.tmp
+~$*
+.DS_Store
+Thumbs.db
+
+# 機密資料（API key 只放後端 .env，永不進 repo）
+.env
+.env.*
+*.key
+*.pem
+credentials.*
+serviceAccount*.json
+
+# Claude Code 本地設定（含 permissions，可能記錄 token，絕不上雲）
+.claude/
+
+# 相依套件與建置產物（node_modules 只在本機磁碟裝，不進 GDrive/repo）
+node_modules/
+dist/
+build/
+.vite/
+
+# 使用者上傳/生成的暫存產物
+uploads/
+generated/
+*.log
