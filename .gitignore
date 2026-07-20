@@ -8,6 +8,7 @@ Thumbs.db
 # 機密資料（API key 只放後端 .env，永不進 repo）
 .env
 .env.*
+!.env.example
 *.key
 *.pem
 credentials.*
