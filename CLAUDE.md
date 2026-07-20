@@ -30,16 +30,27 @@
 
 > 待決：各階段最終用哪個模型／SDK（見第 4 節），先把介面定好，模型可抽換。
 
-## 3. 技術架構（初步，可調整）
+## 3. 技術架構（已實作 v1）
 
-| 層 | 技術（初步選定） | 說明 |
+**設計原則：零相依**——只用 Node 內建模組 + 純 HTML/JS，**不需 `npm install`**，
+可直接在 GDrive 用 `node server/server.mjs` 跑，繞過「node_modules 不能放 GDrive」的坑。
+
+| 層 | 技術 | 說明 |
 |---|---|---|
-| 前端 | Vite + React + TypeScript | 上傳、設定、翻頁預覽 |
-| 後端 | Node.js + Express（輕量代理） | **持有 AI API Key、代理生成請求**，key 永不進前端 |
-| 文字生成 | 待定（Gemini / Claude 等） | 大綱、場景擴寫 |
-| 影像生成 | 待定（支援「參考圖鎖角色」的模型） | 角色一致性是關鍵取捨點 |
+| 前端 | 純 HTML/CSS/vanilla JS（`public/`） | 上傳描述／角色圖、設定頁數/畫風、逐頁生圖、翻頁預覽 |
+| 後端 | Node 內建 `http`（`server/server.mjs`） | 提供靜態檔 + 代理 AI；**持有金鑰，前端永不接觸** |
+| 文字/視覺 | OpenAI `gpt-4o`（`OPENAI_CHAT_MODEL`） | 大綱生成、上傳角色圖的視覺描述 |
+| 影像生成 | OpenAI `gpt-image-1`（`OPENAI_IMAGE_MODEL`） | 純生成 `/images/generations`；有參考圖走 `/images/edits`（角色一致性） |
 
-> ⚠️ 架構未鎖死：這是 §7 開放問題。動工前先在工作筆記確認選型。
+### 檔案地圖
+- `server/server.mjs` — 零相依後端：靜態服務 + `/api/outline`、`/api/image`、`/api/health`
+- `server/lib/openai.mjs` — OpenAI 封裝（chat/vision、generateImage、editImage）
+- `server/lib/story.mjs` — 大綱生成、角色視覺描述、單頁插圖 prompt 組裝
+- `public/index.html` / `style.css` / `app.js` — 學生用前端（繁中、大字、翻頁）
+- `spike/` — 早期最小鏈路驗證腳本（保留參考）
+- 啟動：`node server/server.mjs`（讀 `.env`；預設 PORT=3000，可用 `PORT` 環境變數改）
+
+> 之後若要升級成 Vite + React，需搬到本機磁碟跑 `npm install`（見第 5 節）。
 
 ## 4. 一桌三櫃
 

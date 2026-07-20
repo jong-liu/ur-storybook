@@ -1,0 +1,77 @@
+:root {
+  --bg1: #fde9f3; --bg2: #e0f0ff; --card: #ffffff; --ink: #2b2b3a; --muted: #6b7280;
+  --primary: #ff7aa8; --primary-d: #ef5f92; --accent: #6aa9ff; --ring: #ffd0e2;
+  --radius: 18px; --shadow: 0 10px 30px rgba(80, 60, 120, .12);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--ink);
+  font-family: "Noto Sans TC", system-ui, "Microsoft JhengHei", sans-serif;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2)); min-height: 100vh;
+  font-size: 18px; line-height: 1.7;
+}
+.site-header { text-align: center; padding: 2rem 1rem .5rem; }
+.site-header h1 { margin: 0; font-size: 2.4rem; }
+.site-header p { margin: .3rem 0 0; color: var(--muted); }
+main { max-width: 860px; margin: 0 auto; padding: 1rem; }
+
+.card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.6rem; margin: 1rem 0;
+}
+.field { display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+.label { font-weight: 700; }
+.hint { color: var(--muted); font-size: .85rem; }
+textarea, select, input[type=file] {
+  font: inherit; padding: .7rem .9rem; border: 2px solid #eee; border-radius: 12px;
+  background: #fafafd; transition: border-color .15s; width: 100%;
+}
+textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+.row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.field.small { flex: 0 0 130px; }
+
+.char-preview { position: relative; width: 120px; margin-top: .4rem; }
+.char-preview img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid var(--ring); }
+.char-preview button { position: absolute; top: -8px; right: -8px; border: none; background: var(--primary-d); color: #fff; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; }
+
+.btn-primary, .btn-secondary {
+  font: inherit; font-weight: 800; border: none; cursor: pointer; border-radius: 14px;
+  padding: .9rem 1.4rem; margin-top: 1.2rem; transition: transform .08s, box-shadow .15s;
+}
+.btn-primary { background: var(--primary); color: #fff; width: 100%; font-size: 1.2rem; box-shadow: 0 6px 0 var(--primary-d); }
+.btn-primary:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--primary-d); }
+.btn-primary:disabled { background: #ccc; box-shadow: 0 6px 0 #aaa; cursor: not-allowed; }
+.btn-secondary { background: #eef1ff; color: var(--accent); }
+
+.status { text-align: center; font-weight: 700; color: var(--primary-d); margin-top: 1rem; }
+.hidden { display: none !important; }
+
+/* 繪本 */
+#bookTitle { text-align: center; font-size: 1.8rem; margin: 0 0 1rem; }
+.page-view { display: flex; align-items: center; gap: .6rem; }
+.nav {
+  font-size: 2rem; border: none; background: #fff; color: var(--accent); cursor: pointer;
+  width: 52px; height: 52px; border-radius: 50%; box-shadow: var(--shadow); flex: 0 0 auto;
+}
+.nav:disabled { opacity: .3; cursor: default; }
+.page { flex: 1; text-align: center; }
+.page-img {
+  width: 100%; aspect-ratio: 1/1; border-radius: 16px; overflow: hidden; background: #f3f0fa;
+  display: grid; place-items: center; border: 3px solid var(--ring);
+}
+.page-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.spinner { color: var(--muted); font-weight: 700; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.page-text { font-size: 1.3rem; margin: 1rem .5rem 0; min-height: 3rem; }
+
+.page-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 1rem; }
+.dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; cursor: pointer; }
+.dot.active { background: var(--primary); transform: scale(1.3); }
+.dot.pending { background: #ffe0ec; }
+.book-actions { text-align: center; }
+
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .field.small { flex: 1 1 45%; }
+  .site-header h1 { font-size: 1.9rem; }
+}
