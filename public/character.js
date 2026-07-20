@@ -5,6 +5,9 @@ let currentImage = null;
 let currentName = '';
 
 const API_BASE = resolveApiBase();
+let API_PASSWORD = resolveApiPassword();
+
+bootstrapApiAccess();
 
 function resolveApiBase() {
   const q = new URLSearchParams(location.search).get('api');
@@ -28,6 +31,42 @@ function apiUrl(path) {
   return `${API_BASE}${path}`;
 }
 
+function resolveApiPassword() {
+  const q = new URLSearchParams(location.search).get('pwd');
+  if (q) {
+    try { localStorage.setItem('ur-storybook-api-password', q); } catch {}
+    return q;
+  }
+  try {
+    return localStorage.getItem('ur-storybook-api-password') || '';
+  } catch {
+    return '';
+  }
+}
+
+function buildApiHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (API_PASSWORD) headers['X-App-Password'] = API_PASSWORD;
+  return headers;
+}
+
+async function bootstrapApiAccess() {
+  if (!API_BASE) return;
+  try {
+    const res = await fetch(apiUrl('/api/health'));
+    const data = await res.json();
+    if (data.needsPassword && !API_PASSWORD) promptForApiPassword();
+  } catch {}
+}
+
+function promptForApiPassword() {
+  const input = window.prompt('請輸入課堂密碼（老師提供）');
+  if (!input) return false;
+  API_PASSWORD = input.trim();
+  try { localStorage.setItem('ur-storybook-api-password', API_PASSWORD); } catch {}
+  return true;
+}
+
 // 風格標籤（跟後端 CHARACTER_STYLE_TAGS 一致；載入時也會用 /api/health 覆寫確保同步）
 const DEFAULT_TAGS = ['日系插畫風', '角色特徵鮮明', '情緒自然表情', '動態姿態', '服裝細節精緻',
   '手繪塗鴉風', '潑墨筆觸', '隨性線條', '粉彩與墨色混合', '漫畫草稿質感',
@@ -37,7 +76,7 @@ function renderChips(tags) {
   $('styleChips').innerHTML = tags.map((t) => `<span class="chip">${t}</span>`).join('');
 }
 renderChips(DEFAULT_TAGS);
-fetch(apiUrl('/api/health')).then((r) => r.json()).then((d) => {
+fetch(apiUrl('/api/health'), { headers: API_PASSWORD ? { 'X-App-Password': API_PASSWORD } : undefined }).then((r) => r.json()).then((d) => {
   if (Array.isArray(d.characterStyleTags) && d.characterStyleTags.length) renderChips(d.characterStyleTags);
 }).catch(() => {});
 
@@ -135,9 +174,16 @@ async function generate() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   try {
-    const res = await fetch(apiUrl('/api/character'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c),
+    let res = await fetch(apiUrl('/api/character'), {
+      method: 'POST', headers: buildApiHeaders(), body: JSON.stringify(c),
     });
+    if (res.status === 401) {
+      if (promptForApiPassword()) {
+        res = await fetch(apiUrl('/api/character'), {
+          method: 'POST', headers: buildApiHeaders(), body: JSON.stringify(c),
+        });
+      }
+    }
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     currentImage = data.image;

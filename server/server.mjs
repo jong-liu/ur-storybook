@@ -54,11 +54,23 @@ function applyCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-App-Password');
   if (req.headers['access-control-request-private-network'] === 'true') {
     // Allow browser preflight from HTTPS pages to localhost backend.
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
   }
+}
+
+function requireApiPassword(req, res, url) {
+  const expected = (process.env.APP_PASSWORD || '').trim();
+  if (!expected) return true;
+  if (url === '/api/health') return true;
+
+  const got = String(req.headers['x-app-password'] || '').trim();
+  if (got === expected) return true;
+
+  sendJSON(res, 401, { error: '需要課堂密碼才能使用這個服務', auth: true });
+  return false;
 }
 
 function sendJSON(res, code, obj) {
@@ -104,6 +116,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'OPTIONS' && url.startsWith('/api/')) {
       res.writeHead(204);
       return res.end();
+    }
+
+    if (url.startsWith('/api/') && !requireApiPassword(req, res, url)) {
+      return;
     }
 
     // ── API：生成大綱 ─────────────────────────────────────
@@ -154,7 +170,12 @@ const server = http.createServer(async (req, res) => {
 
     // ── 健康檢查 + 角色風格標籤 ───────────────────────────
     if (url === '/api/health') {
-      return sendJSON(res, 200, { ok: true, hasKey: !!process.env.OPENAI_API_KEY, characterStyleTags: CHARACTER_STYLE_TAGS });
+      return sendJSON(res, 200, {
+        ok: true,
+        hasKey: !!process.env.OPENAI_API_KEY,
+        needsPassword: !!(process.env.APP_PASSWORD || '').trim(),
+        characterStyleTags: CHARACTER_STYLE_TAGS,
+      });
     }
 
     // ── 其餘走靜態檔 ─────────────────────────────────────
@@ -170,6 +191,7 @@ async function main() {
   server.listen(PORT, () => {
     console.log(`\n📖 ur-storybook 後端啟動：http://localhost:${PORT}`);
     console.log(`   金鑰狀態：${process.env.OPENAI_API_KEY ? '✅ 已載入' : '❌ 未設定（請在 .env 填 OPENAI_API_KEY）'}`);
+    console.log(`   API 密碼：${(process.env.APP_PASSWORD || '').trim() ? '✅ 已啟用' : '⚪ 未啟用'}`);
     console.log(`   靜態目錄：${PUBLIC}\n`);
   });
 }

@@ -2,6 +2,9 @@
 const $ = (id) => document.getElementById(id);
 
 const API_BASE = resolveApiBase();
+let API_PASSWORD = resolveApiPassword();
+
+bootstrapApiAccess();
 
 function resolveApiBase() {
   const q = new URLSearchParams(location.search).get('api');
@@ -23,6 +26,42 @@ function normalizeApiBase(v) {
 
 function apiUrl(path) {
   return `${API_BASE}${path}`;
+}
+
+function resolveApiPassword() {
+  const q = new URLSearchParams(location.search).get('pwd');
+  if (q) {
+    try { localStorage.setItem('ur-storybook-api-password', q); } catch {}
+    return q;
+  }
+  try {
+    return localStorage.getItem('ur-storybook-api-password') || '';
+  } catch {
+    return '';
+  }
+}
+
+function buildApiHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (API_PASSWORD) headers['X-App-Password'] = API_PASSWORD;
+  return headers;
+}
+
+async function bootstrapApiAccess() {
+  if (!API_BASE) return;
+  try {
+    const res = await fetch(apiUrl('/api/health'));
+    const data = await res.json();
+    if (data.needsPassword && !API_PASSWORD) promptForApiPassword();
+  } catch {}
+}
+
+function promptForApiPassword() {
+  const input = window.prompt('請輸入課堂密碼（老師提供）');
+  if (!input) return false;
+  API_PASSWORD = input.trim();
+  try { localStorage.setItem('ur-storybook-api-password', API_PASSWORD); } catch {}
+  return true;
 }
 
 const state = {
@@ -163,9 +202,18 @@ function setStatus(msg, show = true) {
 }
 
 async function api(path, body) {
-  const res = await fetch(apiUrl(path), {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  let res = await fetch(apiUrl(path), {
+    method: 'POST', headers: buildApiHeaders(), body: JSON.stringify(body),
   });
+
+  if (res.status === 401) {
+    if (promptForApiPassword()) {
+      res = await fetch(apiUrl(path), {
+        method: 'POST', headers: buildApiHeaders(), body: JSON.stringify(body),
+      });
+    }
+  }
+
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;

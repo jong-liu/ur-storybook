@@ -60,3 +60,51 @@ https://jong-liu.github.io/ur-storybook/character.html?api=http://localhost:3000
 說明：
 - 前端會把 `api` 參數存到 `localStorage`，下次同網域開頁面會自動沿用。
 - 後端已支援 CORS 與 preflight（含 Private Network preflight），可被 GitHub Pages 直接呼叫。
+
+## 給學生直接使用（GitHub Pages + 雲端後端）
+
+前端 GitHub Pages 連結：
+
+```text
+https://jong-liu.github.io/ur-storybook/
+```
+
+要讓學生可直接上傳手繪圖並生成故事書，你需要把 `server/server.mjs` 部署到雲端（例如 Render / Railway / Fly.io），拿到一個後端網址（假設為 `https://your-backend.example.com`）。
+
+部署後，發給學生的連結可用這種格式：
+
+```text
+https://jong-liu.github.io/ur-storybook/?api=https://your-backend.example.com
+```
+
+角色頁連結：
+
+```text
+https://jong-liu.github.io/ur-storybook/character.html?api=https://your-backend.example.com
+```
+
+### 可選：課堂密碼保護
+
+若要防止外部濫用，後端設定環境變數：
+
+```text
+APP_PASSWORD=你的課堂密碼
+```
+
+前端遇到 401 會自動跳出密碼輸入框；輸入一次後會暫存於瀏覽器 `localStorage`。
+
+也可以把密碼直接放在連結（方便但較不安全）：
+
+```text
+https://jong-liu.github.io/ur-storybook/?api=https://your-backend.example.com&pwd=你的課堂密碼
+```
+
+### 雲端後端建議環境變數
+
+- `OPENAI_API_KEY`
+- `OPENAI_CHAT_MODEL=gpt-4o`
+- `OPENAI_IMAGE_MODEL=gpt-image-1`
+- `OPENAI_IMAGE_QUALITY=low`
+- `OPENAI_CHARACTER_QUALITY=high`
+- `CORS_ALLOW_ORIGINS=https://jong-liu.github.io`
+- `APP_PASSWORD`（可選）
