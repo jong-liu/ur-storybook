@@ -7,7 +7,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateImage, editImage } from './lib/openai.mjs';
+import { generateImage, editImage, moderate } from './lib/openai.mjs';
 import { describeCharacter, generateOutline, buildImagePrompt } from './lib/story.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -74,14 +74,22 @@ const server = http.createServer(async (req, res) => {
   try {
     // ── API：生成大綱 ─────────────────────────────────────
     if (req.method === 'POST' && url === '/api/outline') {
-      const { idea = '', characterImage = '', numPages = 5, style } = await readBody(req);
+      const { idea = '', title = '', characterImage = '', numPages = 5, style } = await readBody(req);
       if (!idea.trim() && !characterImage) return sendJSON(res, 400, { error: '請提供故事描述或角色圖片' });
+      // 內容安全 · 第三層（後端防線，擋掉繞過前端的請求）：書名 + 點子一起驗
+      const toModerate = `${title} ${idea}`.trim();
+      if (toModerate) {
+        const mod = await moderate(toModerate);
+        if (mod.flagged) {
+          return sendJSON(res, 400, { error: '這個內容不太適合放進兒童繪本 😊 換個更溫暖、友善的說法再試一次吧！', safety: true });
+        }
+      }
       let characterDesc = '';
       if (characterImage) {
         try { characterDesc = await describeCharacter(characterImage); } catch (e) { console.error('describeCharacter:', e.message); }
       }
       const seed = idea.trim() || `一個以這個角色為主角的溫暖小故事：${characterDesc}`;
-      const outline = await generateOutline({ idea: seed, characterDesc, numPages, style });
+      const outline = await generateOutline({ idea: seed, characterDesc, numPages, style, title });
       return sendJSON(res, 200, outline);
     }
 

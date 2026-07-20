@@ -27,6 +27,29 @@ export function parseJsonLoose(text) {
   throw new Error('找不到括號平衡的 JSON：\n' + text.slice(0, 300));
 }
 
+// 內容安全 · 第三層：OpenAI Moderation API（免費，等同 Gemini safetySettings）
+// 對兒童情境採嚴格門檻——任何 flagged 類別即擋。回傳 { flagged, categories:[] }。
+export async function moderate(text) {
+  if (!text || !text.trim()) return { flagged: false, categories: [] };
+  const { key, base } = cfg();
+  try {
+    const res = await fetch(`${base}/moderations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model: 'omni-moderation-latest', input: text }),
+    });
+    if (!res.ok) throw new Error(`moderation HTTP ${res.status}`);
+    const data = await res.json();
+    const r = data?.results?.[0];
+    const categories = r?.categories ? Object.keys(r.categories).filter((k) => r.categories[k]) : [];
+    return { flagged: !!r?.flagged, categories };
+  } catch (e) {
+    // Moderation 失敗不應讓整個 app 掛掉——記錄後放行（前端關鍵字 + system 指令仍是防線）
+    console.error('moderate error (fail-open):', e.message);
+    return { flagged: false, categories: [], error: e.message };
+  }
+}
+
 // 對話 / 視覺：messages 走 OpenAI chat/completions；要 JSON 就開 json_object
 export async function chat(messages, { json = false, temperature = 0.8 } = {}) {
   const { key, base } = cfg();

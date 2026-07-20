@@ -44,13 +44,32 @@
 
 ### 檔案地圖
 - `server/server.mjs` — 零相依後端：靜態服務 + `/api/outline`、`/api/image`、`/api/health`
-- `server/lib/openai.mjs` — OpenAI 封裝（chat/vision、generateImage、editImage）
-- `server/lib/story.mjs` — 大綱生成、角色視覺描述、單頁插圖 prompt 組裝
-- `public/index.html` / `style.css` / `app.js` — 學生用前端（繁中、大字、翻頁）
+- `server/lib/openai.mjs` — OpenAI 封裝（chat/vision、generateImage、editImage、moderate）
+- `server/lib/story.mjs` — 大綱生成、角色視覺描述、單頁插圖 prompt 組裝、安全指令
+- `public/index.html` / `style.css` / `app.js` — 學生用前端（繁中、大字、封面+翻頁）
+- `public/contentSafety.js` — 內容安全第一層（前端關鍵字，見 §3.5）
+- `public/pdf.js` — 客戶端 PDF 匯出（canvas 烤字→JPEG→手工組 PDF，檔名=書名）
 - `spike/` — 早期最小鏈路驗證腳本（保留參考）
 - 啟動：`node server/server.mjs`（讀 `.env`；預設 PORT=3000，可用 `PORT` 環境變數改）
 
+### 成品功能（v1.1）
+封面（標題+封面插圖）、翻頁預覽、**單頁重生**（每張可重畫）、**失敗自動重試一次+手動重試**、
+**PDF 匯出**（以書名為檔名，文字烤進圖片故中文免嵌字型）。批次生成中會停用重畫/匯出避免狀態打架。
+
 > 之後若要升級成 Vite + React，需搬到本機磁碟跑 `npm install`（見第 5 節）。
+
+## 3.5 內容安全防護（三層，給國小學生用）
+
+避免小朋友輸入失序內容，三層把關（早期友善 → 生成引導 → 後端硬防線）：
+
+| 層 | 位置 | 機制 | 使用者體驗 |
+|---|---|---|---|
+| **1 前端關鍵字** | `public/contentSafety.js` | 中英文黑名單（暴力/性/髒話/毒品/自傷）。中文用「包含」比對（2字以上片語降誤判）、英文用「單字邊界」比對。送出前(④)＋生成前(⑤)都檢查 | 邊打邊出**行內友善提醒**；送出時擋下不呼叫 API |
+| **2 系統指令** | `server/lib/story.mjs` `CONTENT_SAFETY` | system prompt 最前面加「## 0. 內容安全（最高優先）」 | 要求模型把不當內容**溫和改寫**成安全版，而非硬拒絕 |
+| **3 後端 Moderation** | `server/lib/openai.mjs` `moderate()` | **OpenAI Moderation API**（`omni-moderation-latest`，免費）＝ 對應隔壁 Gemini 版的 `safetySettings`。`/api/outline` 先驗 idea，flagged 就擋 | 回傳友善訊息；擋掉繞過前端的請求（fail-open：moderation 掛掉不擋死 app） |
+
+> 維護：黑名單改 `contentSafety.js` 的 `ZH_RULES`/`EN_RULES`；改完回歸測誤判詞（殺球/樹幹/hello/grape/method 須放行）。
+> ⚠️ 與隔壁 storybook 的差異：那邊第三層是 Gemini `safetySettings`；本專案用 OpenAI，改用 Moderation API 等價實作。
 
 ## 4. 一桌三櫃
 

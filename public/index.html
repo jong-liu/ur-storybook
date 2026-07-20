@@ -15,10 +15,42 @@
   <main>
     <!-- 設定區 -->
     <section id="setup" class="card">
+      <div class="setup-head">
+        <p class="setup-intro">跟著下面的欄位一步一步填，就能完成你的故事 👇</p>
+        <button type="button" id="loadExample" class="btn-mini">📋 載入範例</button>
+      </div>
+
       <label class="field">
-        <span class="label">✏️ 你的故事點子（簡短描述）</span>
-        <textarea id="idea" rows="3" placeholder="例如：一隻愛冒險的小鯨魚，在深海遇見會發光的水母……"></textarea>
+        <span class="label">📕 故事書的書名</span>
+        <span class="hint">留空也沒關係，AI 會幫你取一個好聽的名字</span>
+        <input type="text" id="bookName" placeholder="例如：小鯨魚波波的發光朋友" />
       </label>
+
+      <label class="field">
+        <span class="label">🦸 主角是誰？</span>
+        <span class="hint">他叫什麼名字？長什麼樣子？（有上傳角色圖的話可以留空）</span>
+        <input type="text" id="fChar" placeholder="例如：一隻圓滾滾、天藍色的小鯨魚，叫波波" />
+      </label>
+
+      <label class="field">
+        <span class="label">🌍 故事發生在哪裡？</span>
+        <span class="hint">什麼地方、什麼時候？</span>
+        <input type="text" id="fSetting" placeholder="例如：在深深的藍色海底" />
+      </label>
+
+      <label class="field">
+        <span class="label">✨ 發生了什麼有趣的事？</span>
+        <span class="hint">這是故事的重點！主角遇到什麼、做了什麼？</span>
+        <textarea id="fPlot" rows="3" placeholder="例如：波波遇見一群會發光的水母，跟著牠們一起探險，發現海底的祕密洞穴"></textarea>
+      </label>
+
+      <label class="field">
+        <span class="label">🎁 最後怎麼了？</span>
+        <span class="hint">結局，或想帶給小朋友的溫暖訊息（可留空）</span>
+        <input type="text" id="fEnding" placeholder="例如：波波交到新朋友，學會分享與勇敢" />
+      </label>
+
+      <p id="ideaWarn" class="inline-warn hidden"></p>
 
       <div class="row">
         <label class="field">
@@ -33,7 +65,6 @@
           <select id="numPages">
             <option value="3">3 頁</option>
             <option value="5" selected>5 頁</option>
-            <option value="8">8 頁</option>
           </select>
         </label>
 
@@ -60,11 +91,15 @@
         <div class="page">
           <div class="page-img" id="pageImg"><div class="spinner">插圖生成中…</div></div>
           <p class="page-text" id="pageText"></p>
+          <div class="page-tools">
+            <button id="regen" class="btn-mini">🔄 重畫這一頁</button>
+          </div>
         </div>
         <button id="next" class="nav" aria-label="下一頁">›</button>
       </div>
       <div class="page-dots" id="dots"></div>
       <div class="book-actions">
+        <button id="exportPdf" class="btn-secondary">⬇️ 匯出 PDF</button>
         <button id="restart" class="btn-secondary">↻ 再做一本</button>
       </div>
     </section>
@@ -72,6 +107,8 @@
 
   <footer class="site-footer">ur-storybook · 由學生的想像力 + AI 一起完成</footer>
 
+  <script src="contentSafety.js"></script>
+  <script src="pdf.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
