@@ -146,41 +146,15 @@ function liveSafetyCheck() {
 }
 STORY_FIELDS.forEach((id) => $(id).addEventListener('input', liveSafetyCheck));
 
-// ── 範例故事下拉選單（童話與歷史故事範本，適合小三～小六）────
-const EXAMPLES = [
-  { title: '小紅帽', char: '小紅帽，一個戴著紅色斗篷的小女孩', setting: '森林裡，白天', plot: '她去看望奶奶，途中遇到大野狼', ending: '獵人救了她和奶奶，提醒孩子要小心陌生人' },
-  { title: '灰姑娘', char: '灰姑娘，穿著破舊衣服但心地善良', setting: '王國的城堡，晚上舞會', plot: '仙女教母幫她變身，參加舞會並遇見王子', ending: '王子找到她，幸福生活，傳遞「善良會帶來好運」' },
-  { title: '三隻小豬', char: '三隻小豬，分別蓋草屋、木屋、磚屋', setting: '鄉村田野，白天', plot: '大野狼來吹倒房子，只有磚屋能抵擋', ending: '小豬們學到努力與堅持的重要' },
-  { title: '白雪公主', char: '白雪公主，皮膚白皙、心地善良', setting: '森林小屋，七個小矮人家', plot: '壞皇后給她毒蘋果，她陷入沉睡', ending: '王子救醒她，提醒孩子要警覺危險' },
-  { title: '木偶奇遇記', char: '皮諾丘，一個會說話的木偶', setting: '義大利小鎮，白天', plot: '他因說謊鼻子變長，經歷冒險', ending: '學會誠實，變成真正的男孩' },
-  { title: '孔子教學生', char: '孔子，古代中國的老師，穿著長袍', setting: '春秋時代的學堂', plot: '他教學生仁義禮智，回答學生疑問', ending: '學生們成為有智慧的人，傳遞「學習能改變人生」' },
-  { title: '華盛頓砍櫻桃樹', char: '小華盛頓，美國第一任總統的童年', setting: '美國鄉村，白天', plot: '他砍倒櫻桃樹，誠實承認錯誤', ending: '父親讚賞他的誠實，傳遞「誠實是美德」' },
-  { title: '嫦娥奔月', char: '嫦娥，美麗的女子', setting: '古代中國，月宮', plot: '她因服下仙藥飛到月亮', ending: '嫦娥住在月宮，提醒孩子「珍惜家人與幸福」' },
-  { title: '馬丁路德金的夢想', char: '馬丁路德金博士，穿西裝的演說家', setting: '美國華盛頓，林肯紀念堂', plot: '他發表「我有一個夢想」演說', ending: '激勵人們追求平等，傳遞「尊重每個人」' },
-  { title: '鄭和下西洋', char: '鄭和，明朝的航海家', setting: '大海與港口，15世紀', plot: '他率領船隊到達許多國家，交流文化', ending: '帶回友誼與知識，傳遞「探索能拓展眼界」' },
-];
-
-// 填入下拉選單選項
-const exampleSelect = $('exampleSelect');
-EXAMPLES.forEach((ex, i) => {
-  const opt = document.createElement('option');
-  opt.value = String(i);
-  opt.textContent = `${i + 1}. ${ex.title}`;
-  exampleSelect.appendChild(opt);
-});
-
-// 選了範例 → 一鍵填入所有欄位
-exampleSelect.addEventListener('change', () => {
-  const idx = exampleSelect.value;
-  if (idx === '') return;
-  const ex = EXAMPLES[Number(idx)];
-  $('bookName').value = ex.title;
-  $('fChar').value = ex.char;
-  $('fSetting').value = ex.setting;
-  $('fPlot').value = ex.plot;
-  $('fEnding').value = ex.ending;
+// ── 載入範例 ─────────────────────────────────────────────────
+$('loadExample').addEventListener('click', () => {
+  $('bookName').value = '小鯨魚波波的發光朋友';
+  $('fChar').value = '一隻圓滾滾、天藍色的小鯨魚，叫波波，有一雙好奇的大眼睛';
+  $('fSetting').value = '在深深的藍色海底';
+  $('fPlot').value = '波波遇見一群會發光的水母，跟著牠們一起探險，發現海底的祕密洞穴';
+  $('fEnding').value = '波波交到新朋友，學會分享與勇敢';
   liveSafetyCheck();
-  setStatus(`已載入範例「${ex.title}」，可以直接生成，或改成自己的想法 😊`);
+  setStatus('已載入範例，你可以直接生成，或改成自己的點子 😊');
 });
 
 // ── 按鈕 ─────────────────────────────────────────────────────

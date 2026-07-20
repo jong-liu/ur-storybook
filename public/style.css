@@ -14,10 +14,6 @@ body {
 .site-header h1 { margin: 0; font-size: 2.4rem; }
 .site-header p { margin: .3rem 0 0; color: var(--muted); }
 main { max-width: 860px; margin: 0 auto; padding: 1rem; }
-.site-footer { text-align: center; padding: 1.5rem 1rem 2.5rem; color: var(--muted); font-size: .9rem; }
-.topnav { margin-top: .7rem; }
-.topnav a { color: var(--primary-d); font-weight: 700; text-decoration: none; }
-.topnav a:hover { text-decoration: underline; }
 
 .style-card { padding: 1rem 1.4rem; }
 .style-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
@@ -38,7 +34,6 @@ textarea:focus, select:focus, input[type=text]:focus { outline: none; border-col
 
 .setup-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
 .setup-intro { margin: 0; color: var(--muted); font-weight: 600; }
-.example-select { width: auto; max-width: 100%; flex: 0 1 auto; border-color: var(--ring); color: var(--primary-d); font-weight: 700; cursor: pointer; }
 #setup .field { margin-bottom: 1.1rem; }
 #setup .field .hint { margin-top: -.1rem; }
 .row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }

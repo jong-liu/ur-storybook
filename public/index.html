@@ -10,7 +10,6 @@
   <header class="site-header">
     <h1>📖 我的故事書工廠</h1>
     <p>寫一句話，或上傳一張角色圖，就能變出一本繪本！</p>
-    <nav class="topnav"><a href="character.html">🎨 想先做一個角色？→ 角色產生器</a></nav>
   </header>
 
   <main>
@@ -18,9 +17,7 @@
     <section id="setup" class="card">
       <div class="setup-head">
         <p class="setup-intro">跟著下面的欄位一步一步填，就能完成你的故事 👇</p>
-        <select id="exampleSelect" class="example-select" aria-label="選一個範例故事">
-          <option value="">📋 選一個範例故事…</option>
-        </select>
+        <button type="button" id="loadExample" class="btn-mini">📋 載入範例</button>
       </div>
 
       <label class="field">
