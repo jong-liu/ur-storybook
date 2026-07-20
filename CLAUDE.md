@@ -43,14 +43,22 @@
 | 影像生成 | OpenAI `gpt-image-1`（`OPENAI_IMAGE_MODEL`） | 純生成 `/images/generations`；有參考圖走 `/images/edits`（角色一致性） |
 
 ### 檔案地圖
-- `server/server.mjs` — 零相依後端：靜態服務 + `/api/outline`、`/api/image`、`/api/health`
-- `server/lib/openai.mjs` — OpenAI 封裝（chat/vision、generateImage、editImage、moderate）
+- `server/server.mjs` — 零相依後端：靜態服務 + `/api/outline`、`/api/image`、`/api/character`、`/api/health`
+- `server/lib/openai.mjs` — OpenAI 封裝（chat/vision、generateImage[可覆寫 quality]、editImage、moderate）
 - `server/lib/story.mjs` — 大綱生成、角色視覺描述、單頁插圖 prompt 組裝、安全指令
-- `public/index.html` / `style.css` / `app.js` — 學生用前端（繁中、大字、封面+翻頁）
+- `server/lib/character.mjs` — 角色產生器：固定日系插畫風 prompt 組裝 + 中文風格標籤
+- `public/index.html` / `style.css` / `app.js` — 繪本前端（繁中、封面+翻頁；會接收角色產生器帶回的角色圖）
+- `public/character.html` / `character.js` — **角色產生器**（固定畫風、下載、「用這個角色做繪本」）
 - `public/contentSafety.js` — 內容安全第一層（前端關鍵字，見 §3.5）
 - `public/pdf.js` — 客戶端 PDF 匯出（canvas 烤字→JPEG→手工組 PDF，檔名=書名）
 - `spike/` — 早期最小鏈路驗證腳本（保留參考）
 - 啟動：`node server/server.mjs`（讀 `.env`；預設 PORT=3000，可用 `PORT` 環境變數改）
+
+### 角色產生器（tools 模組）
+`character.html` 描述角色 → `/api/character` 套固定日系插畫風（`character.mjs` CHARACTER_STYLE，
+`OPENAI_CHARACTER_QUALITY` 預設 high）→ 出圖可下載，或「用這個角色做繪本」（經 sessionStorage
+帶回 `index.html` 自動填入角色圖，接上跨頁一致性）。生圖速度：繪本批次用併發+low quality
+（封面+3頁約 20s）；角色單張用 high quality（約 30–40s）。插圖一律白色簡約背景。
 
 ### 成品功能（v1.1）
 封面（標題+封面插圖）、翻頁預覽、**單頁重生**（每張可重畫）、**失敗自動重試一次+手動重試**、

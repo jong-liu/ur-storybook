@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎨 角色產生器 · ur-storybook</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>🎨 角色產生器</h1>
+    <p>描述你的角色，生成一張日系插畫風的角色圖 ✨</p>
+    <nav class="topnav"><a href="index.html">← 回去做繪本</a></nav>
+  </header>
+
+  <main>
+    <!-- 風格說明 -->
+    <section class="card style-card">
+      <span class="label">🖌️ 固定畫風（自動套用）</span>
+      <div class="style-chips" id="styleChips"></div>
+    </section>
+
+    <!-- 設定區 -->
+    <section id="setup" class="card">
+      <div class="setup-head">
+        <p class="setup-intro">填一填，做出你自己的角色 👇</p>
+        <button type="button" id="loadExample" class="btn-mini">📋 載入範例</button>
+      </div>
+
+      <label class="field">
+        <span class="label">🧑 角色是誰？</span>
+        <span class="hint">名字、身分、基本設定</span>
+        <input type="text" id="cName" placeholder="例如：一個勇敢的小女孩，叫小星" />
+      </label>
+
+      <label class="field">
+        <span class="label">✨ 外觀特徵</span>
+        <span class="hint">髮型髮色、眼睛、膚色、明顯特徵…</span>
+        <textarea id="cFeatures" rows="2" placeholder="例如：紅色短髮、大大的琥珀色眼睛、臉頰有小雀斑"></textarea>
+      </label>
+
+      <label class="field">
+        <span class="label">😊 表情 / 心情</span>
+        <span class="hint">可留空</span>
+        <input type="text" id="cMood" placeholder="例如：開心又充滿好奇" />
+      </label>
+
+      <label class="field">
+        <span class="label">🏃 姿態 / 動作</span>
+        <span class="hint">可留空</span>
+        <input type="text" id="cPose" placeholder="例如：張開雙手往前奔跑" />
+      </label>
+
+      <label class="field">
+        <span class="label">👗 服裝</span>
+        <span class="hint">可留空</span>
+        <input type="text" id="cClothing" placeholder="例如：黃色雨衣配紅色小雨鞋" />
+      </label>
+
+      <p id="ideaWarn" class="inline-warn hidden"></p>
+
+      <button id="generate" class="btn-primary">✨ 生成角色</button>
+      <p id="status" class="status hidden"></p>
+    </section>
+
+    <!-- 成果區 -->
+    <section id="result" class="card hidden">
+      <div class="page">
+        <div class="page-img" id="charImg"><div class="spinner">角色生成中…</div></div>
+      </div>
+      <div class="book-actions">
+        <button id="useInBook" class="btn-primary">📖 用這個角色做繪本</button>
+        <button id="download" class="btn-secondary">⬇️ 下載角色圖</button>
+        <button id="again" class="btn-secondary">↻ 再做一個</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">ur-storybook · 由學生的想像力 + AI 一起完成</footer>
+
+  <script src="contentSafety.js"></script>
+  <script src="character.js"></script>
+</body>
+</html>

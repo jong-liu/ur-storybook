@@ -11,6 +11,8 @@ function cfg() {
 export const CHAT_MODEL = () => process.env.OPENAI_CHAT_MODEL || 'gpt-4o';
 export const IMAGE_MODEL = () => process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
 export const IMAGE_SIZE = () => process.env.OPENAI_IMAGE_SIZE || '1024x1024';
+// gpt-image-1 品質：low（最快最便宜）/ medium / high / auto。給學生用預設 low 求速度。
+export const IMAGE_QUALITY = () => process.env.OPENAI_IMAGE_QUALITY || 'low';
 
 // 從雜訊文字挖出第一個括號平衡的 JSON 物件（防模型在合法 JSON 後附加垃圾）
 export function parseJsonLoose(text) {
@@ -73,13 +75,15 @@ function dataUrlToBuffer(dataUrl) {
   return { buffer: Buffer.from(m[2], 'base64'), mime: m[1] };
 }
 
-// 文字生圖：/images/generations
-export async function generateImage(prompt) {
+// 文字生圖：/images/generations（可用 quality 覆寫預設品質）
+export async function generateImage(prompt, { quality } = {}) {
   const { key, base } = cfg();
+  const body = { model: IMAGE_MODEL(), prompt, size: IMAGE_SIZE(), n: 1 };
+  if (/^gpt-image/i.test(IMAGE_MODEL())) body.quality = quality || IMAGE_QUALITY();
   const res = await fetch(`${base}/images/generations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: IMAGE_MODEL(), prompt, size: IMAGE_SIZE(), n: 1 }),
+    body: JSON.stringify(body),
   });
   const raw = await res.text();
   let data; try { data = JSON.parse(raw); } catch { data = null; }
@@ -98,6 +102,7 @@ export async function editImage(prompt, refDataUrls = []) {
   form.append('prompt', prompt);
   form.append('size', IMAGE_SIZE());
   form.append('n', '1');
+  if (/^gpt-image/i.test(IMAGE_MODEL())) form.append('quality', IMAGE_QUALITY());
   refs.forEach((r, i) => {
     const ext = r.mime.split('/')[1] || 'png';
     form.append('image[]', new Blob([r.buffer], { type: r.mime }), `ref-${i}.${ext}`);

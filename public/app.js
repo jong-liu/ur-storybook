@@ -44,6 +44,19 @@ $('clearImg').addEventListener('click', () => {
   $('charPreview').classList.add('hidden');
 });
 
+// 從「角色產生器」帶回來的角色圖 → 自動帶入
+(function pickupGeneratedCharacter() {
+  let img = null;
+  try { img = sessionStorage.getItem('ur-storybook-character'); } catch {}
+  if (!img) return;
+  try { sessionStorage.removeItem('ur-storybook-character'); } catch {}
+  state.charImageDataUrl = img;
+  const box = $('charPreview');
+  box.querySelector('img').src = img;
+  box.classList.remove('hidden');
+  setStatus('✅ 已帶入你剛做的角色，填一下故事就能開始囉！');
+})();
+
 // ── 引導式輸入：收集各欄位 ───────────────────────────────────
 const STORY_FIELDS = ['bookName', 'fChar', 'fSetting', 'fPlot', 'fEnding'];
 
@@ -106,6 +119,15 @@ async function api(path, body) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
+}
+
+// 併發限流：同時最多 concurrency 個 worker，各自領下一個 index 來做
+async function runPool(count, worker, concurrency = 3) {
+  let next = 0;
+  const run = async () => { while (next < count) { const i = next++; await worker(i); } };
+  const runners = [];
+  for (let k = 0; k < Math.min(concurrency, count); k++) runners.push(run());
+  await Promise.all(runners);
 }
 
 // 單張生圖（含自動重試一次）；成功回 dataURL，失敗丟錯
@@ -178,18 +200,22 @@ async function generate() {
     renderDots();
     showSlide(0);
 
+    // 併發生圖（一次多張同時畫，比逐張快很多）；限流避免打到 API 速率上限
     const total = slideCount();
-    for (let i = 0; i < total; i++) {
-      setStatus(i === 0 ? '🎨 正在畫封面……' : `🎨 正在畫第 ${i} / ${total - 1} 頁……`);
+    let done = 0;
+    setStatus(`🎨 正在同時畫封面和 ${total - 1} 頁……`);
+    await runPool(total, async (i) => {
       try {
         setSlideImage(i, await requestImage(i));
       } catch (err) {
         setSlideImage(i, 'ERROR');
         console.error(`slide ${i} 生圖失敗：`, err.message);
       }
+      done++;
+      setStatus(`🎨 已完成 ${done} / ${total} 張……`);
       renderDots();
       if (state.current === i) showSlide(i);
-    }
+    }, 3);
     state.generating = false;
     $('exportPdf').disabled = false;
     showSlide(state.current); // 重新整理重畫鈕狀態

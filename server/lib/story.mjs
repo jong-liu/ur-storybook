@@ -45,7 +45,7 @@ ${charLine}
     {
       "page": 1,
       "text": "這一頁給小朋友讀的故事文字（繁體中文，1-3 句，用字簡單溫暖）",
-      "illustration_prompt": "這一頁插圖的英文描述（給圖像模型：具體場景+動作+情緒，結尾固定加 children's storybook illustration, ${style}, soft colors, warm, for kids）"
+      "illustration_prompt": "這一頁插圖的英文描述（給圖像模型）：聚焦在主角與牠正在做的動作、表情、情緒；背景保持極簡留白，只畫少數必要的小物件，不要畫滿場景（因為成品採白色簡約背景）"
     }
   ]
 }
@@ -70,5 +70,7 @@ ${charLine}
 // 組裝單頁最終插圖 prompt：把角色描述綁進去 → 跨頁一致性
 export function buildImagePrompt({ illustration_prompt, character, style = '溫暖童趣水彩' }) {
   const charPart = character ? `Main character (keep identical on every page): ${character}. ` : '';
-  return `${charPart}Scene: ${illustration_prompt} Style: children's storybook illustration, ${style}, soft colors, warm, gentle, suitable for young children, no text in the image.`;
+  return `${charPart}Subject/action: ${illustration_prompt} ` +
+    `Background: plain solid white minimalist background, clean, uncluttered, lots of white space, no scenery, no busy background. ` +
+    `Style: children's storybook illustration, ${style}, soft colors, warm, gentle, suitable for young children, no text in the image.`;
 }

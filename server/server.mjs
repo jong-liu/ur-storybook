@@ -9,6 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateImage, editImage, moderate } from './lib/openai.mjs';
 import { describeCharacter, generateOutline, buildImagePrompt } from './lib/story.mjs';
+import { buildCharacterPrompt, CHARACTER_STYLE_TAGS } from './lib/character.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -105,9 +106,22 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 200, { image: `data:image/png;base64,${b64}` });
     }
 
-    // ── 健康檢查 ─────────────────────────────────────────
+    // ── API：生成角色圖案（固定日系插畫風，高品質）──────────
+    if (req.method === 'POST' && url === '/api/character') {
+      const { name = '', features = '', mood = '', pose = '', clothing = '' } = await readBody(req);
+      const combined = [name, features, mood, pose, clothing].join(' ').trim();
+      if (!combined) return sendJSON(res, 400, { error: '請描述你想要的角色' });
+      const mod = await moderate(combined);
+      if (mod.flagged) return sendJSON(res, 400, { error: '這個角色描述不太適合 😊 換個更溫暖、友善的說法再試一次吧！', safety: true });
+      const prompt = buildCharacterPrompt({ name, features, mood, pose, clothing });
+      const b64 = await generateImage(prompt, { quality: process.env.OPENAI_CHARACTER_QUALITY || 'high' });
+      if (!b64) return sendJSON(res, 502, { error: '沒有生成出角色圖片' });
+      return sendJSON(res, 200, { image: `data:image/png;base64,${b64}` });
+    }
+
+    // ── 健康檢查 + 角色風格標籤 ───────────────────────────
     if (url === '/api/health') {
-      return sendJSON(res, 200, { ok: true, hasKey: !!process.env.OPENAI_API_KEY });
+      return sendJSON(res, 200, { ok: true, hasKey: !!process.env.OPENAI_API_KEY, characterStyleTags: CHARACTER_STYLE_TAGS });
     }
 
     // ── 其餘走靜態檔 ─────────────────────────────────────
