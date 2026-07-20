@@ -5,7 +5,7 @@
 目前的使用方式是：
 - 前端放在 GitHub Pages
 - 後端跑在你的 Ubuntu 主機
-- 學生用瀏覽器打開網址，第一次輸入課堂密碼後即可使用
+- 學生用瀏覽器打開網址後即可使用
 
 ## 學生使用連結
 
@@ -21,15 +21,7 @@ https://jong-liu.github.io/ur-storybook/?api=https://6d1e90e4d59ed8.lhr.life
 https://jong-liu.github.io/ur-storybook/character.html?api=https://6d1e90e4d59ed8.lhr.life
 ```
 
-課堂密碼：
-
-```text
-tw2026
-```
-
 說明：
-- 學生第一次打開頁面時，會先跳出密碼輸入框。
-- 密碼輸入一次後，瀏覽器會暫存，下次通常不用再輸入。
 - 這個 `api` 網址目前是臨時 tunnel，只要你的後端或 tunnel 停掉，連結就會失效。
 
 ## 老師開課前要做什麼
@@ -56,16 +48,6 @@ ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 nokey@localhost.run
 nvm use
 ```
 
-後端設定放在 `.env`，至少需要：
-
-```text
-OPENAI_API_KEY=你的金鑰
-APP_PASSWORD=tw2026
-CORS_ALLOW_ORIGINS=https://jong-liu.github.io
-```
-
-如果你要參考完整格式，可看 `.env.example`。
-
 ## 日常使用流程
 
 1. 開機後先確認 `nvm use` 已切到 Node 20。
@@ -91,17 +73,12 @@ CORS_ALLOW_ORIGINS=https://jong-liu.github.io
 - `node server/server.mjs` 還有沒有在跑
 - `ssh ... localhost.run` 那個 tunnel 還有沒有在跑
 
-### 如果想換課堂密碼？
-
-改 `.env` 裡的 `APP_PASSWORD`，再重啟後端即可。
-
 ## 目前重要檔案
 
 - `server/server.mjs`：後端 API 與 CORS / 密碼保護
 - `public/app.js`：故事書頁前端邏輯
 - `public/character.js`：角色頁前端邏輯
 - `public/pdf.js`：PDF 匯出
-- `.env.example`：環境變數範例
 
 ## 備註
 
